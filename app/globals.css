@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+:root {
+  /* Aquí definimos los colores de La Red */
+  --color-red-dark: #0a0a0a;
+  --color-red-gold: #d4af37;
+  --color-red-accent: #8b5cf6;
+  background-color: black;
+  color: white;
+}
