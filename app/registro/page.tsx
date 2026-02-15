@@ -34,17 +34,10 @@ const BARRIOS_POR_DEPTO: Record<string, string[]> = {
 };
 
 
-const TRIBUS = [
-  "Góticas/os", "Metaleros", 
-  "Sport", "Elegante", 
-  "Vainilla", "BDSM", 
-  "Alt/Indie", "Otakus", 
-  "Gym Rats", "Daddies/Mommies",
-  "Milipilis/Tincho", "Hippie Chic",
-  "Raperos/Trap", "K-popers",
-  "Gamers", "Artísticos",
-  "Motoqueros", "Skaters",
-  "Techneros", "Cumbieros"
+const TRIBUS_DISPONIBLES = [
+  "Metaleros", "Techneros", "Gym Rats", "Góticas/os", "Alt/Indie", "Sport", "Daddies/Mommies", "Elegante", 
+  "Skaters", "Hip-hop/Rap", "K-popers", "Gamers", "Artistas", "Hippie-Chic", "Rave Culture", "Aesthetic", 
+  "Trapperos", "Otakus", "Viejas Escuelas", "Fit-Style"
 ];
 
 export default function Registro() {
@@ -161,7 +154,7 @@ export default function Registro() {
             <p className="text-gray-500 mb-6 text-center text-sm">Elegí tus estilos (Scroll para ver más).</p>
             
             <div className="grid grid-cols-2 gap-3 max-h-[380px] overflow-y-auto w-full pr-1 custom-scrollbar">
-              {TRIBUS.map((t) => (
+              {TRIBUS_DISPONIBLES.map((t) => (
                 <button
                   key={t}
                   onClick={() => {

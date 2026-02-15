@@ -1,8 +1,23 @@
 "use client";
-import { useState, useRef } from "react";
-import Link from "next/link";
+import React, { useState, useRef } from "react";
+import {
+  MessageCircle,
+  Share2,
+  Home,
+  User,
+  MapPin,
+  Edit3
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
-// BASE DE DATOS GEOGRÁFICA DE URUGUAY
+// Catálogo de tribus
+const TRIBUS_LIST = [
+  "Metaleros", "Techneros", "Gym Rats", "Góticas/os", "Alt/Indie", "Sport", "Daddies/Mommies", "Elegante",
+  "Skaters", "Hip-hop/Rap", "K-popers", "Gamers", "Artistas", "Hippie-Chic", "Rave Culture", "Aesthetic",
+  "Trapperos", "Otakus", "Old School", "Fit-Style"
+];
+
+// Catálogo de departamentos y barrios (UY)
 const GEOGRAFIA_UY: Record<string, string[]> = {
   "Montevideo": [
     "Pocitos", "Punta Carretas", "Cordón", "Centro", "Ciudad Vieja", "Carrasco", "Carrasco Norte", "Malvín", "Malvín Norte", "Buceo", "Parque Rodó", "Palermo", "Aguada", "Prado", "Tres Cruces", "La Blanqueada", "Unión", "Cerro", "Paso de la Arena", "Sayago", "Colón", "Peñarol", "Manga", "Casavalle", "Piedras Blancas", "Maroñas", "Parque Batlle", "La Teja", "Punta de Rieles", "Melilla"
@@ -33,134 +48,287 @@ const GEOGRAFIA_UY: Record<string, string[]> = {
   "Treinta y Tres": ["Treinta y Tres (Ciudad)", "Vergara", "Santa Clara de Olimar", "Cerro Chato"]
 };
 
-// LAS 20 TRIBUS URBANAS
-const TRIBUS_DISPONIBLES = [
-  "Metaleros", "Techneros", "Gym Rats", "Góticas/os", "Alt/Indie", "Sport", "Daddies/Mommies", "Elegante", 
-  "Skaters", "Hip-hop/Rap", "K-popers", "Gamers", "Artistas", "Hippie-Chic", "Rave Culture", "Aesthetic", 
-  "Trapperos", "Otakus", "Viejas Escuelas", "Fit-Style"
-];
+interface ProfileData {
+  name: string;
+  barrio: string;
+  depto: string;
+  bio: string;
+  tribes: string[];
+  avatar: string;
+}
 
-export default function Perfil() {
-  const [isEditing, setIsEditing] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const [user, setUser] = useState({
-    nombre: "Juan Pérez",
-    depto: "Montevideo",
+const UserProfile: React.FC = () => {
+  const router = useRouter();
+
+  const [profile, setProfile] = useState<ProfileData>({
+    name: "TU NOMBRE",
     barrio: "Pocitos",
-    tribus: ["Metaleros", "Techneros", "Aesthetic"],
-    fotoGesto: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&q=80"
+    depto: "Montevideo",
+    bio: "Digital Nomad & Night Owl 🌙. Buscando conexiones reales sin drama.",
+    tribes: ["Alt/Indie", "Gamers", "Sport"],
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === "depto") {
-      // Si cambia el depto, reseteamos el barrio al primero de la nueva lista
-      setUser(prev => ({ ...prev, depto: value, barrio: GEOGRAFIA_UY[value][0] }));
-    } else {
-      setUser(prev => ({ ...prev, [name]: value }));
-    }
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState<ProfileData>(profile);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleOpenEdit = () => {
+    setEditForm(profile);
+    setIsEditModalOpen(true);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setUser(prev => ({ ...prev, fotoGesto: URL.createObjectURL(file) }));
+  const handleSaveProfile = () => {
+    if (!editForm.tribes.length) {
+      alert("Selecciona al menos 1 tribu (máximo 5).");
+      return;
+    }
+    if (!editForm.depto || !editForm.barrio) {
+      alert("Selecciona un departamento y barrio válidos.");
+      return;
+    }
+    setProfile(editForm);
+    setIsEditModalOpen(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDeptoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newDepto = e.target.value;
+    const firstBarrio = GEOGRAFIA_UY[newDepto]?.[0] ?? "";
+    setEditForm(prev => ({ ...prev, depto: newDepto, barrio: firstBarrio }));
+  };
+
+  const handleBarrioChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setEditForm(prev => ({ ...prev, barrio: e.target.value }));
   };
 
   const toggleTribu = (tribu: string) => {
-    if (!isEditing) return;
-    setUser(prev => {
-      if (prev.tribus.includes(tribu)) {
-        return prev.tribus.length > 1 
-          ? { ...prev, tribus: prev.tribus.filter(t => t !== tribu) }
-          : prev;
+    setEditForm(prev => {
+      const already = prev.tribes.includes(tribu);
+      if (already) {
+        const updated = prev.tribes.filter(t => t !== tribu);
+        return { ...prev, tribes: updated.length ? updated : [tribu] };
       }
-      return { ...prev, tribus: [...prev.tribus, tribu] };
+      if (prev.tribes.length >= 5) return prev;
+      return { ...prev, tribes: [...prev.tribes, tribu] };
     });
   };
 
-  const guardarCambios = () => {
-    if (!user.nombre.trim()) return alert("El nombre es obligatorio");
-    setIsEditing(false);
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setEditForm(prev => ({ ...prev, avatar: url }));
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Perfil de ${profile.name}`,
+          text: "Echa un vistazo a mi perfil.",
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log("Error al compartir:", error);
+      }
+    } else {
+      alert("Link copiado al portapapeles (Simulación)");
+    }
   };
 
   return (
-    <main className="min-h-screen bg-black text-white pb-32 max-w-md mx-auto border-x border-gray-900 relative">
-      
-      {/* HEADER */}
-      <header className="p-6 flex justify-between items-center border-b border-gray-900 sticky top-0 bg-black/95 backdrop-blur-md z-50">
-        <Link href="/dashboard" className="text-gray-500 hover:text-white transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-        </Link>
-        <h1 className="text-lg font-black uppercase tracking-[0.3em] italic">Mi Perfil</h1>
-        <button 
-          onClick={isEditing ? guardarCambios : () => setIsEditing(true)}
-          className={`text-[10px] font-black px-4 py-1.5 rounded-full border transition-all ${isEditing ? "bg-green-600 border-green-600 shadow-[0_0_15px_green]" : "bg-red-accent/10 border-red-accent/20 text-red-accent"}`}
-        >
-          {isEditing ? "CONFIRMAR" : "EDITAR"}
-        </button>
-      </header>
-
-      <div className="p-8 flex flex-col items-center">
-        
-        {/* FOTO */}
-        <div className="relative mb-6 cursor-pointer" onClick={() => isEditing && fileInputRef.current?.click()}>
-            <div className={`w-32 h-32 rounded-[2.5rem] overflow-hidden border-2 p-1 transition-all ${isEditing ? "border-green-500 scale-105" : "border-red-accent shadow-[0_0_20px_rgba(255,0,0,0.2)]"}`}>
-                <img src={user.fotoGesto} className="w-full h-full object-cover rounded-[2.2rem]" alt="" />
+    <div className="flex justify-center min-h-screen bg-[#050b14] text-slate-200 font-sans">
+      <div className="w-full max-w-md bg-[#0f172a] shadow-2xl relative flex flex-col min-h-screen">
+        <div className="p-6 pb-4">
+          <div className="flex flex-col items-center">
+            <div className="relative mb-4 group">
+              <div className="w-28 h-28 rounded-full p-1 bg-gradient-to-tr from-rose-500 to-indigo-600 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                <img
+                  src={profile.avatar}
+                  alt="Profile"
+                  className="w-full h-full rounded-full object-cover border-4 border-[#0f172a]"
+                />
+              </div>
             </div>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+
+            <div className="text-center w-full">
+              <h1 className="text-2xl font-bold italic tracking-wider text-white">{profile.name}</h1>
+              <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mt-1">
+                <MapPin size={14} />
+                <span>{profile.barrio}, {profile.depto}</span>
+              </div>
+              <p className="text-gray-300 mt-3 text-sm leading-relaxed px-4">{profile.bio}</p>
+              <div className="flex flex-wrap justify-center gap-2 mt-4 px-2">
+                {profile.tribes.map((tribe, index) => (
+                  <span key={index} className="bg-slate-800 text-indigo-300 text-xs px-3 py-1 rounded-full border border-slate-700">
+                    {tribe}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 w-full mt-6 px-2">
+              <button
+                onClick={handleOpenEdit}
+                className="flex-1 bg-[#1e293b] hover:bg-[#334155] text-white py-2.5 rounded-lg text-sm font-semibold transition border border-gray-700 flex items-center justify-center gap-2"
+              >
+                <Edit3 size={16} /> EDITAR PERFIL
+              </button>
+              <button
+                onClick={handleShare}
+                className="flex-1 border border-gray-600 hover:border-gray-400 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2"
+              >
+                <Share2 size={16} /> COMPARTIR
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* NOMBRE */}
-        {isEditing ? (
-          <input name="nombre" value={user.nombre} onChange={handleInputChange} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 text-xl font-black italic uppercase text-center w-full mb-8 focus:border-green-500 outline-none" />
-        ) : (
-          <h2 className="text-2xl font-black italic uppercase mb-8">{user.nombre}</h2>
-        )}
+        <div className="pb-24" />
 
-        {/* UBICACIÓN */}
-        <div className="w-full space-y-4">
-            <div className={`p-5 rounded-[2.5rem] border ${isEditing ? "border-green-500/50 bg-gray-900" : "border-gray-800 bg-gray-900/40"}`}>
-                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-3">Ubicación Actual</p>
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <select name="depto" value={user.depto} onChange={handleInputChange} className="w-full bg-black border border-gray-700 rounded-xl p-3 text-xs font-bold text-white uppercase tracking-tighter">
-                      {Object.keys(GEOGRAFIA_UY).sort().map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                    <select name="barrio" value={user.barrio} onChange={handleInputChange} className="w-full bg-black border border-gray-700 rounded-xl p-3 text-xs font-bold text-white uppercase tracking-tighter">
-                      {GEOGRAFIA_UY[user.depto].map(b => <option key={b} value={b}>{b}</option>)}
+        <div className="fixed bottom-0 w-full max-w-md bg-[#0f172a]/95 backdrop-blur-md border-t border-gray-800 flex justify-around py-4 z-10">
+          <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-white transition" aria-label="Ir a inicio">
+            <Home size={24} />
+          </button>
+          <button onClick={() => router.push('/mensajes')} className="text-gray-400 hover:text-white transition" aria-label="Ir a mensajes">
+            <MessageCircle size={24} />
+          </button>
+          <button onClick={() => router.push('/perfil')} className="text-white transition" aria-label="Ir a perfil">
+            <User size={24} />
+          </button>
+        </div>
+
+        {isEditModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
+            <div className="bg-[#1e293b] w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-700 animate-in fade-in zoom-in duration-200">
+              <h2 className="text-xl font-bold text-white mb-4">Editar Perfil</h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Foto de perfil</label>
+                  <div className="flex items-center gap-3 mt-2">
+                    <img
+                      src={editForm.avatar}
+                      alt="preview avatar"
+                      className="w-14 h-14 rounded-full object-cover border border-gray-700"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => avatarInputRef.current?.click()}
+                        className="px-3 py-2 rounded-lg bg-[#0f172a] border border-gray-700 text-sm text-white hover:border-indigo-400"
+                      >
+                        Cambiar foto
+                      </button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={avatarInputRef}
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Nombre</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editForm.name}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#0f172a] text-white p-3 rounded-lg border border-gray-700 focus:border-indigo-500 outline-none mt-1"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Depto</label>
+                    <select
+                      name="depto"
+                      value={editForm.depto}
+                      onChange={handleDeptoChange}
+                      className="w-full bg-[#0f172a] text-white p-3 rounded-lg border border-gray-700 outline-none mt-1"
+                    >
+                      {Object.keys(GEOGRAFIA_UY).map(depto => (
+                        <option key={depto} value={depto}>{depto}</option>
+                      ))}
                     </select>
                   </div>
-                ) : (
-                  <p className="text-white font-bold italic uppercase tracking-tighter">{user.barrio}, {user.depto}</p>
-                )}
-            </div>
-
-            {/* TRIBUS SELECCIONABLES */}
-            <div className={`p-5 rounded-[2.5rem] border ${isEditing ? "border-green-500/50 bg-gray-900" : "border-gray-800 bg-gray-900/40"}`}>
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Mis Tribus</p>
-                  {isEditing && <span className="text-[8px] text-green-500 font-black uppercase tracking-widest">Mínimo 1</span>}
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Barrio</label>
+                    <select
+                      name="barrio"
+                      value={editForm.barrio}
+                      onChange={handleBarrioChange}
+                      className="w-full bg-[#0f172a] text-white p-3 rounded-lg border border-gray-700 outline-none mt-1"
+                    >
+                      {(GEOGRAFIA_UY[editForm.depto] ?? []).map(barrio => (
+                        <option key={barrio} value={barrio}>{barrio}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                    {(isEditing ? TRIBUS_DISPONIBLES : user.tribus).map(t => {
-                      const activa = user.tribus.includes(t);
+
+                <div>
+                  <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Descripción</label>
+                  <textarea
+                    rows={3}
+                    name="bio"
+                    value={editForm.bio}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#0f172a] text-white p-3 rounded-lg border border-gray-700 outline-none resize-none mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Tribus (elige 1 a 5)</label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {TRIBUS_LIST.map(tribu => {
+                      const active = editForm.tribes.includes(tribu);
+                      const disabled = !active && editForm.tribes.length >= 5;
                       return (
-                        <button 
-                          key={t}
-                          onClick={() => toggleTribu(t)}
-                          className={`text-[8px] px-3 py-2 rounded-xl font-black uppercase transition-all border ${
-                            activa ? "bg-red-accent text-white border-red-accent" : "bg-white/5 text-gray-600 border-white/5"
-                          }`}
+                        <button
+                          type="button"
+                          key={tribu}
+                          onClick={() => !disabled && toggleTribu(tribu)}
+                          className={`px-3 py-1 rounded-full border text-sm transition ${active ? "bg-indigo-600 border-indigo-400 text-white" : "bg-[#0f172a] border-gray-700 text-gray-300 hover:border-indigo-400"} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
-                          {t} {isEditing && activa && "✕"}
+                          {tribu}
                         </button>
                       );
                     })}
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">Selecciona al menos 1 y máximo 5.</p>
                 </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="flex-1 py-3 text-gray-400 font-bold hover:text-white transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveProfile}
+                  className="flex-1 bg-indigo-600 py-3 rounded-lg text-white font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30"
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
-        </div>
+          </div>
+        )}
+
       </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default UserProfile;
