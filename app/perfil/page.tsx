@@ -1,13 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
-import {
-  MessageCircle,
-  Share2,
-  Home,
-  User,
-  MapPin,
-  Edit3
-} from "lucide-react";
+import { MessageCircle, Share2, MapPin, Edit3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 // Catálogo de tribus
@@ -142,8 +135,8 @@ const UserProfile: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center min-h-screen bg-[#050b14] text-slate-200 font-sans">
-      <div className="w-full max-w-md bg-[#0f172a] shadow-2xl relative flex flex-col min-h-screen">
+    <div className="flex justify-center min-h-screen text-slate-200 font-sans px-4 pb-24">
+      <div className="w-full max-w-md bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl relative flex flex-col min-h-screen rounded-3xl">
         <div className="p-6 pb-4">
           <div className="flex flex-col items-center">
             <div className="relative mb-4 group">
@@ -189,20 +182,7 @@ const UserProfile: React.FC = () => {
           </div>
         </div>
 
-        <div className="pb-24" />
-
-        <div className="fixed bottom-0 w-full max-w-md bg-[#0f172a]/95 backdrop-blur-md border-t border-gray-800 flex justify-around py-4 z-10">
-          <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-white transition" aria-label="Ir a inicio">
-            <Home size={24} />
-          </button>
-          <button onClick={() => router.push('/mensajes')} className="text-gray-400 hover:text-white transition" aria-label="Ir a mensajes">
-            <MessageCircle size={24} />
-          </button>
-          <button onClick={() => router.push('/perfil')} className="text-white transition" aria-label="Ir a perfil">
-            <User size={24} />
-          </button>
-        </div>
-
+  <div className="pb-28" />
         {isEditModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
             <div className="bg-[#1e293b] w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-700 animate-in fade-in zoom-in duration-200">

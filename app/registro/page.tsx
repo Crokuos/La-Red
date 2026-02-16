@@ -37,7 +37,7 @@ const BARRIOS_POR_DEPTO: Record<string, string[]> = {
 const TRIBUS_DISPONIBLES = [
   "Metaleros", "Techneros", "Gym Rats", "Góticas/os", "Alt/Indie", "Sport", "Daddies/Mommies", "Elegante", 
   "Skaters", "Hip-hop/Rap", "K-popers", "Gamers", "Artistas", "Hippie-Chic", "Rave Culture", "Aesthetic", 
-  "Trapperos", "Otakus", "Viejas Escuelas", "Fit-Style"
+  "Trapperos", "Otakus", "Old School", "Fit-Style"
 ];
 
 export default function Registro() {
@@ -66,7 +66,7 @@ export default function Registro() {
     setFormData(prev => ({ ...prev, barrio: "" }));
   }, [formData.depto]);
 
-  const isStep1Disabled = !formData.email.includes("@") || formData.password.length < 6;
+  const isStep1Disabled = !formData.email.includes("@") || formData.password.length < 10;
   const isStep2Disabled = !formData.depto || !formData.barrio;
   const isStep3Disabled = formData.tribus.length === 0;
 
@@ -88,7 +88,14 @@ export default function Registro() {
       {step < 5 && (
         <div className="w-full max-w-md flex gap-2 mb-12 mt-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-700 ${step >= i ? "bg-red-accent shadow-[0_0_10px_rgba(139,92,246,0.5)]" : "bg-gray-800"}`} />
+            <div
+              key={i}
+              className={`h-1 flex-1 rounded-full transition-all duration-700 ${
+                step >= i
+                  ? "bg-rose-500 shadow-[0_0_14px_rgba(244,63,94,0.8)]"
+                  : "bg-gray-800"
+              }`}
+            />
           ))}
         </div>
       )}
@@ -108,10 +115,10 @@ export default function Registro() {
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
                 <input 
-                    type="password" 
-                    placeholder="Contraseña (mín. 6)" 
-                    className="w-full bg-gray-900 border border-gray-800 p-4 rounded-2xl focus:border-red-accent outline-none text-center transition-colors"
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  type="password" 
+                  placeholder="Contraseña (mín. 10)" 
+                  className="w-full bg-gray-900 border border-gray-800 p-4 rounded-2xl focus:border-red-accent outline-none text-center transition-colors"
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
                 />
             </div>
             <button onClick={nextStep} disabled={isStep1Disabled} className="w-full bg-white text-black font-bold py-4 rounded-full mt-8 disabled:opacity-20 cursor-pointer active:scale-95 transition-all">CONTINUAR</button>

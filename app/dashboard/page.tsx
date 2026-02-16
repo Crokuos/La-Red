@@ -97,10 +97,16 @@ function MatchModal({ isOpen, onClose, user, userPhoto }: {
 }
 export default function Dashboard() {
   const router = useRouter();
+  const MATCHES_KEY = "matches";
   const [activeTab, setActiveTab] = useState("cerca");
   const [likes, setLikes] = useState<number[]>([]);
+  const [likesInbox, setLikesInbox] = useState([
+    { id: 5, nombre: "Lucía", foto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&q=80" },
+    { id: 6, nombre: "Enzo", foto: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&q=80" },
+  ]);
   const [storyAbierta, setStoryAbierta] = useState<string | null>(null);
   const [matchIds, setMatchIds] = useState<number[]>([]);
+  const [showNotif, setShowNotif] = useState(false);
   const [search, setSearch] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartamento, setSelectedDepartamento] = useState<string>("todos");
@@ -126,18 +132,49 @@ const toggleLike = (user: any) => {
     if (user.nombre === "Valentina" || user.nombre === "Mateo") {
       setMatchUser(user);
       setTimeout(() => setShowMatch(true), 400);
-      setMatchIds(prev => prev.includes(user.id) ? prev : [...prev, user.id]);
+      persistMatch(user);
     }
   }
 };
 
-  const goMensajes = () => {
-    if (!matchIds.length) {
-      alert("Solo puedes enviar mensajes a quienes hicieron match contigo.");
-      return;
+  const persistMatch = (user: any) => {
+    setMatchIds(prev => prev.includes(user.id) ? prev : [...prev, user.id]);
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem(MATCHES_KEY) : null;
+      const parsed = saved ? JSON.parse(saved) : [];
+      const exists = Array.isArray(parsed) && parsed.some((m: any) => m.id === user.id);
+      const next = exists ? parsed : [...parsed, { id: user.id, nombre: user.nombre, foto: user.foto }];
+      localStorage.setItem(MATCHES_KEY, JSON.stringify(next));
+    } catch (err) {
+      console.error("No se pudo guardar el match", err);
     }
+  };
+
+  const acceptLike = (user: any) => {
+    persistMatch(user);
+    setLikesInbox(prev => prev.filter((p) => p.id !== user.id));
+    setMatchUser(user);
+    setTimeout(() => setShowMatch(true), 200);
+  };
+
+  const goMensajes = () => {
     router.push("/mensajes");
   };
+
+// Carga matches previos para habilitar mensajes desde dashboard o perfil
+useEffect(() => {
+  try {
+    const saved = typeof window !== "undefined" ? localStorage.getItem(MATCHES_KEY) : null;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        setMatchIds(parsed.map((m: any) => m.id));
+      }
+    }
+  } catch (err) {
+    console.error("No se pudo leer matches guardados", err);
+  }
+}, []);
 
 // derive unique opciones
 const departamentos = DEPARTAMENTOS;
@@ -182,10 +219,55 @@ return (
       <header className="p-6 flex justify-between items-center border-b border-gray-900 sticky top-0 bg-black/95 backdrop-blur-md z-50">
         <h1 className="text-2xl font-black italic tracking-tighter text-red-accent">LA RED</h1>
         <div className="flex gap-4">
-            <button className="relative">
+            <div className="relative">
+              <button
+                onClick={() => setShowNotif((v) => !v)}
+                className="relative"
+                aria-label="Notificaciones"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-                {likes.length > 0 && <span className="absolute top-0 right-0 bg-red-accent w-2 h-2 rounded-full"></span>}
-            </button>
+                {(likesInbox.length > 0 || likes.length > 0) && (
+                  <span className="absolute -top-1 -right-1 bg-red-accent text-black text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+                    {likesInbox.length || likes.length}
+                  </span>
+                )}
+              </button>
+
+              {showNotif && (
+                <div className="absolute right-0 mt-3 w-72 bg-black/90 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-xl z-50 p-3 space-y-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-bold">Notificaciones</p>
+                    <button
+                      className="text-[11px] text-gray-400 hover:text-white"
+                      onClick={() => setShowNotif(false)}
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+
+                  {likesInbox.length === 0 && (
+                    <p className="text-xs text-gray-500">Sin likes nuevos.</p>
+                  )}
+
+                  {likesInbox.map((u) => (
+                    <div key={u.id} className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5">
+                      <img src={u.foto} alt={u.nombre} className="w-10 h-10 rounded-full object-cover" />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold">{u.nombre}</p>
+                        <p className="text-[11px] text-gray-500">te dio like</p>
+                      </div>
+                      <button
+                        onClick={() => acceptLike(u)}
+                        className="p-2 rounded-full bg-rose-500 text-white shadow-lg active:scale-95 transition"
+                        aria-label="Hacer match"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             {/* BOTÓN PERFIL ARRIBA */}
             <Link href="/perfil">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-red-accent/40 to-gray-800 border border-white/10 flex items-center justify-center text-[10px] font-bold tracking-tighter cursor-pointer active:scale-90 transition-transform">

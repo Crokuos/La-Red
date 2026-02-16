@@ -8,7 +8,8 @@ export default function ChatIndividual({ params }: { params: { id: string } }) {
     { id: 1, texto: "¡Hola! Vi que te gustan los Redondos 🎸", yo: false, hora: "12:40" },
     { id: 2, texto: "Sabelo, de las mejores bandas de acá.", yo: true, hora: "12:42" },
     { id: 3, texto: "¿Vas al toque del sábado?", yo: false, hora: "12:43" },
-  ]);
+  ] as Array<{ id: number; texto?: string; imagen?: string; yo: boolean; hora: string }>);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -33,8 +34,19 @@ export default function ChatIndividual({ params }: { params: { id: string } }) {
     setMensaje("");
   };
 
+  const enviarImagen = (file: File) => {
+    const url = URL.createObjectURL(file);
+    const nuevoMsg = {
+      id: Date.now(),
+      imagen: url,
+      yo: true,
+      hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    setHistorial((prev) => [...prev, nuevoMsg]);
+  };
+
   return (
-    <main className="flex flex-col h-screen bg-black text-white max-w-md mx-auto border-x border-gray-900 shadow-2xl relative">
+    <main className="flex flex-col h-screen bg-black text-white max-w-md mx-auto border-x border-gray-900 shadow-2xl relative pb-24">
       
       {/* HEADER */}
       <header className="p-4 border-b border-gray-900 bg-black/95 backdrop-blur-md flex items-center gap-4 sticky top-0 z-50">
@@ -64,10 +76,21 @@ export default function ChatIndividual({ params }: { params: { id: string } }) {
           <div key={msg.id} className={`flex ${msg.yo ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] p-4 rounded-[1.8rem] text-sm shadow-xl ${
               msg.yo 
-              ? "bg-red-accent text-white rounded-tr-none" 
+              ? "bg-green-500 text-black rounded-tr-none" 
               : "bg-gray-900 text-gray-200 rounded-tl-none border border-gray-800"
             }`}>
-              <p className="leading-relaxed font-medium">{msg.texto}</p>
+              {msg.texto && (
+                <p className="leading-relaxed font-medium break-words whitespace-pre-wrap">{msg.texto}</p>
+              )}
+              {msg.imagen && (
+                <div className="mt-2">
+                  <img
+                    src={msg.imagen}
+                    alt="imagen compartida"
+                    className="max-h-64 w-auto rounded-2xl border border-white/10 object-cover"
+                  />
+                </div>
+              )}
               <span className={`text-[8px] mt-1 block opacity-50 font-black ${msg.yo ? "text-right" : "text-left"}`}>
                 {msg.hora}
               </span>
@@ -77,18 +100,39 @@ export default function ChatIndividual({ params }: { params: { id: string } }) {
       </section>
 
       {/* INPUT */}
-      <footer className="p-4 bg-black border-t border-gray-900 sticky bottom-0">
+      <footer className="p-4 bg-black border-t border-gray-900 sticky bottom-20 z-40">
         <form onSubmit={enviarMensaje} className="flex gap-2 items-center">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-gray-900 border border-gray-800 rounded-full p-3 text-gray-300 hover:text-white hover:border-red-accent/50 transition"
+            aria-label="Enviar foto"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) enviarImagen(file);
+            }}
+          />
+
           <input 
             type="text" 
             value={mensaje}
             onChange={(e) => setMensaje(e.target.value)}
             placeholder="Escribí un mensaje..." 
-            className="flex-1 bg-gray-900 border border-gray-800 rounded-full px-6 py-3 text-sm focus:outline-none focus:border-red-accent/50 transition-all text-white placeholder:text-gray-600"
+            className="flex-1 bg-gray-900 border border-gray-800 rounded-full px-4 py-3 text-sm focus:outline-none focus:border-red-accent/50 transition-all text-white placeholder:text-gray-600"
           />
           <button 
             type="submit"
             className="bg-red-accent p-3 rounded-full active:scale-90 transition-transform shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+            aria-label="Enviar mensaje"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </button>

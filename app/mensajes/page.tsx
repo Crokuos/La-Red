@@ -1,19 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link"; // Importación vital
 
-const CHATS_ACTIVOS = [
-  { id: 1, nombre: "Valentina", foto: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80", ultimoMsg: "Dale, a las 11 en el bar.", hora: "12:45", sinLeer: 2 },
-  { id: 2, nombre: "Mateo", foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80", ultimoMsg: "Viste el set que subieron?", hora: "Ayer", sinLeer: 0 },
-];
-
-const NUEVOS_MATCHES = [
-  { id: 3, nombre: "Camila", foto: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&q=80" },
-  { id: 4, nombre: "Lucía", foto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&q=80" },
-  { id: 5, nombre: "Enzo", foto: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&q=80" },
-];
+type MatchUser = { id: number; nombre: string; foto?: string };
+const MATCHES_KEY = "matches";
 
 export default function Mensajes() {
+  const [matches, setMatches] = useState<MatchUser[]>([]);
+
+  useEffect(() => {
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem(MATCHES_KEY) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setMatches(parsed);
+        }
+      }
+    } catch (err) {
+      console.error("No se pudieron cargar matches", err);
+    }
+  }, []);
+
+  const hasMatches = matches.length > 0;
+
   return (
     <main className="min-h-screen bg-black text-white pb-24 max-w-md mx-auto border-x border-gray-900 shadow-2xl">
       
@@ -24,48 +34,56 @@ export default function Mensajes() {
         </button>
       </header>
 
-      <section className="p-6">
-        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-4">Nuevas Conexiones</h2>
-        <div className="flex gap-5 overflow-x-auto no-scrollbar">
-          {NUEVOS_MATCHES.map(m => (
-            <div key={m.id} className="flex flex-col items-center gap-2 min-w-[70px] group cursor-pointer">
-              <div className="w-16 h-16 rounded-3xl rotate-3 group-hover:rotate-0 transition-all border-2 border-red-accent p-0.5 overflow-hidden">
-                <img src={m.foto} className="w-full h-full object-cover rounded-[1.4rem]" alt="" />
-              </div>
-              <span className="text-[10px] font-bold text-gray-400">{m.nombre}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="px-2 space-y-1">
-        <h2 className="px-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-2">Conversaciones</h2>
-        {CHATS_ACTIVOS.map(chat => (
-            <Link href={`/mensajes/${chat.id}`} key={chat.id}>
-          <div key={chat.id} className="flex items-center gap-4 p-4 hover:bg-gray-900/40 transition-all rounded-[2rem] cursor-pointer group">
-              <div className="relative">
-                <div className="w-14 h-14 rounded-2xl overflow-hidden grayscale group-hover:grayscale-0 transition-all border border-gray-800">
-                  <img src={chat.foto} className="w-full h-full object-cover" alt="" />
-                </div>
-                {chat.sinLeer > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-accent w-5 h-5 rounded-full border-2 border-black flex items-center justify-center text-[10px] font-black animate-pulse">
-                    {chat.sinLeer}
+      {hasMatches ? (
+        <>
+          <section className="p-6">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-4">Nuevas Conexiones</h2>
+            <div className="flex gap-5 overflow-x-auto no-scrollbar">
+              {matches.map(m => (
+                <div key={m.id} className="flex flex-col items-center gap-2 min-w-[70px] group cursor-pointer">
+                  <div className="w-16 h-16 rounded-3xl rotate-3 group-hover:rotate-0 transition-all border-2 border-red-accent p-0.5 overflow-hidden">
+                    <img src={m.foto || "https://via.placeholder.com/64"} className="w-full h-full object-cover rounded-[1.4rem]" alt={m.nombre} />
                   </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="font-black italic uppercase text-sm tracking-tighter">{chat.nombre}</h3>
-                  <span className="text-[9px] text-gray-600 font-bold">{chat.hora}</span>
+                  <span className="text-[10px] font-bold text-gray-400">{m.nombre}</span>
                 </div>
-                <p className={`text-xs truncate ${chat.sinLeer > 0 ? "text-white font-medium" : "text-gray-500"}`}>
-                  {chat.ultimoMsg}
-                </p>
-              </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="px-2 space-y-1">
+            <h2 className="px-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-2">Conversaciones</h2>
+            {matches.map(chat => (
+              <Link href={`/mensajes/${chat.id}`} key={chat.id}>
+                <div className="flex items-center gap-4 p-4 hover:bg-gray-900/40 transition-all rounded-[2rem] cursor-pointer group">
+                    <div className="relative">
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden grayscale group-hover:grayscale-0 transition-all border border-gray-800">
+                        <img src={chat.foto || "https://via.placeholder.com/72"} className="w-full h-full object-cover" alt={chat.nombre} />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <h3 className="font-black italic uppercase text-sm tracking-tighter">{chat.nombre}</h3>
+                        <span className="text-[9px] text-gray-600 font-bold">Nuevo</span>
+                      </div>
+                      <p className="text-xs truncate text-gray-500">¡Comienza la conversación!</p>
+                    </div>
+                </div>
+              </Link>
+            ))}
+          </section>
+        </>
+      ) : (
+        <section className="flex flex-col items-center justify-center text-center px-6 py-24 gap-4">
+          <div className="w-20 h-20 rounded-full bg-red-accent/10 border border-red-accent/30 flex items-center justify-center">
+            <span className="text-3xl">💕</span>
           </div>
+          <p className="text-lg font-black">Sin matches todavia...</p>
+          <p className="text-sm text-gray-500">Cuando hagas match acá aparecerán tus conversaciones.</p>
+          <Link href="/dashboard" className="mt-2 px-4 py-2 rounded-full bg-red-accent text-black font-bold uppercase text-xs tracking-[0.2em]">
+            Explorar
           </Link>
-        ))}
-      </section>
+        </section>
+      )}
 
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-black/80 backdrop-blur-2xl border-t border-white/5 px-12 py-5 flex justify-between items-center z-50">
         <Link href="/dashboard" className="text-gray-600 hover:text-white transition-colors">
