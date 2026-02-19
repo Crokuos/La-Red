@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { findApplicationByToken } from "../_lib/auth";
-import ActivateClient from "./ActivateClient";
+import { findApplicationByToken } from "@/app/_lib/auth";
+import ActivateClient from "@/app/activar/ActivateClient";
 
 export default async function Activar({ searchParams }: { searchParams: { token?: string } }) {
   const token = searchParams.token || null;

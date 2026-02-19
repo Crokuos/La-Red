@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Application,
-  listPendingApplications,
-  getApprovedGenderCounts,
-  updateApplicationStatus,
-} from "../_lib/admissions";
+import { Application, listPendingApplications, getApprovedGenderCounts, updateApplicationStatus } from "@/app/_lib/admissions";
 
 export default function AdminApplications() {
   const [pending, setPending] = useState<Application[]>([]);

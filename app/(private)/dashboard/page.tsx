@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
 import Link from "next/link"; // ESTA LÍNEA ES LA QUE FALTABA
-import { getSessionUser } from "../../_lib/admissions";
+import { getSessionUser } from "@/app/_lib/admissions";
 
 const USUARIOS_DATA = [
   { id: 1, nombre: "Valentina", edad: 24, departamento: "Montevideo", barrio: "Pocitos", foto: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80", tribus: ["Góticas/os", "Alt/Indie"], online: true },

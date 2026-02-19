@@ -92,6 +92,9 @@ export function proxy(request: NextRequest) {
   }
 
   if (isPublicPath(pathname)) {
+    if (pathname === "/login") {
+      return NextResponse.next();
+    }
     if (isAuthenticated && session?.activated_at) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }

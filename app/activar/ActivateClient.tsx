@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Application, createUserFromApplication, getApplicationByToken } from "../_lib/admissions";
+import { Application, createUserFromApplication, getApplicationByToken } from "@/app/_lib/admissions";
 
 export default function ActivateClient({ token }: { token: string }) {
   const router = useRouter();

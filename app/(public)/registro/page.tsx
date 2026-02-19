@@ -2,11 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Application,
-  createApplication,
-  generateVerificationCode,
-} from "../../_lib/admissions";
+import { Application, createApplication, generateVerificationCode } from "@/app/_lib/admissions";
 
 const BARRIOS_POR_DEPTO: Record<string, string[]> = {
   Montevideo: [

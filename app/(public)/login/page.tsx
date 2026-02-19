@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { loginWithEmail, getSessionUser } from "../../_lib/admissions";
+import { loginWithEmail, getSessionUser } from "@/app/_lib/admissions";
 
 export default function Login() {
   const router = useRouter();
@@ -10,11 +10,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const s = getSessionUser();
-    if (s) router.replace("/dashboard");
-  }, [router]);
 
   const isButtonDisabled = !email.includes("@") || password.length < 6 || loading;
 
