@@ -4,12 +4,10 @@ import Link from "next/link";
 export default function Landing() {
   return (
     <main className="min-h-screen relative overflow-hidden flex items-center justify-center px-6 py-12 bg-[#02040a] text-white">
-      {/* Fondo de ciudad desenfocada con overlay negro al 90% */}
       <div className="absolute inset-0" aria-hidden>
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center scale-110 blur-3xl opacity-40" />
         <div className="absolute inset-0 bg-black/90" />
       </div>
-      {/* Glow layers */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(244,63,94,0.12),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(79,70,229,0.12),transparent_30%),radial-gradient(circle_at_50%_80%,rgba(255,255,255,0.05),transparent_25%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.05)_0%,rgba(255,255,255,0)_18%,rgba(255,255,255,0.05)_36%,rgba(255,255,255,0)_54%,rgba(255,255,255,0.05)_72%,rgba(255,255,255,0)_90%)] opacity-30" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(0,0,0,0.7),transparent_55%)]" />
@@ -21,9 +19,7 @@ export default function Landing() {
         >
           <div className="flex items-baseline justify-center gap-2 md:gap-3">
             <span className="text-xl md:text-2xl font-semibold italic tracking-tight text-gray-400">LA</span>
-            <span className="text-7xl md:text-8xl font-black italic tracking-tighter text-rose-400 drop-shadow-[0_0_30px_rgba(244,63,94,0.35)]">
-              RED
-            </span>
+            <span className="text-7xl md:8xl font-black italic tracking-tighter text-rose-400 drop-shadow-[0_0_30px_rgba(244,63,94,0.35)]">RED</span>
           </div>
           <p className="text-[12px] uppercase tracking-[0.35em] text-gray-400">Uruguay Exclusive</p>
         </div>

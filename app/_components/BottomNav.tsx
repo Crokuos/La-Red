@@ -9,7 +9,7 @@ const links = [
   { href: "/perfil", label: "Perfil", Icon: UserRound },
 ];
 
-const hiddenPrefixes = ["/login", "/registro", "/recuperar"];
+const hiddenPrefixes = ["/login", "/registro", "/recuperar", "/activar", "/activacion-pendiente", "/admin"];
 
 export default function BottomNav() {
   const pathname = usePathname();

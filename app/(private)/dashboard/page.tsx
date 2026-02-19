@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
 import Link from "next/link"; // ESTA LÍNEA ES LA QUE FALTABA
+import { getSessionUser } from "../../_lib/admissions";
 
 const USUARIOS_DATA = [
   { id: 1, nombre: "Valentina", edad: 24, departamento: "Montevideo", barrio: "Pocitos", foto: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80", tribus: ["Góticas/os", "Alt/Indie"], online: true },
@@ -98,6 +99,7 @@ function MatchModal({ isOpen, onClose, user, userPhoto }: {
 export default function Dashboard() {
   const router = useRouter();
   const MATCHES_KEY = "matches";
+  const [authChecked, setAuthChecked] = useState(false);
   const [activeTab, setActiveTab] = useState("cerca");
   const [likes, setLikes] = useState<number[]>([]);
   const [likesInbox, setLikesInbox] = useState([
@@ -107,6 +109,11 @@ export default function Dashboard() {
   const [storyAbierta, setStoryAbierta] = useState<string | null>(null);
   const [matchIds, setMatchIds] = useState<number[]>([]);
   const [showNotif, setShowNotif] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportUser, setReportUser] = useState<any>(null);
+  const [reportReason, setReportReason] = useState("");
+  const dashReasons = ["Foto indevida", "Suplantacion de identidad"];
+  const [reportedIds, setReportedIds] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartamento, setSelectedDepartamento] = useState<string>("todos");
@@ -157,11 +164,16 @@ const toggleLike = (user: any) => {
     setTimeout(() => setShowMatch(true), 200);
   };
 
-  const goMensajes = () => {
-    router.push("/mensajes");
-  };
-
 // Carga matches previos para habilitar mensajes desde dashboard o perfil
+useEffect(() => {
+  const session = getSessionUser();
+  if (!session) {
+    router.replace("/login");
+    return;
+  }
+  setAuthChecked(true);
+}, [router]);
+
 useEffect(() => {
   try {
     const saved = typeof window !== "undefined" ? localStorage.getItem(MATCHES_KEY) : null;
@@ -195,6 +207,27 @@ const filtered = USUARIOS_DATA.filter(u => {
 
 const filteredMatches = filtered.filter(u => matchIds.includes(u.id));
 const currentList = activeTab === "tribus" ? filteredMatches : filtered;
+
+const openReport = (user: any) => {
+  if (reportedIds.includes(user.id)) return;
+  setReportUser(user);
+  setReportReason(dashReasons[0]);
+  setReportOpen(true);
+};
+
+const submitReport = () => {
+  alert(`Reporte enviado sobre ${reportUser?.nombre}`);
+  if (reportUser) setReportedIds((prev) => [...prev, reportUser.id]);
+  setReportOpen(false);
+};
+
+if (!authChecked) {
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <p className="text-gray-400 text-sm">Verificando acceso...</p>
+    </div>
+  );
+}
 
 return (
   <div className="min-h-screen bg-black text-white pb-24 max-w-md mx-auto border-x border-gray-900 shadow-2xl relative">
@@ -399,6 +432,13 @@ return (
         {currentList.map(u => (
             <div key={u.id} className="relative animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="aspect-[4/5] w-full rounded-[2.5rem] overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 group">
+                    <button
+                      onClick={() => openReport(u)}
+                      className="absolute top-4 right-4 z-20 bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center border border-white/20 hover:border-rose-400"
+                      aria-label="Denunciar"
+                    >
+                      !
+                    </button>
                     <img src={u.foto} className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110" alt="" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
                     
@@ -446,35 +486,49 @@ return (
       </section>
 
       {/* ...existing code... */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-black/80 backdrop-blur-2xl border-t border-white/5 px-12 py-5 flex justify-between items-center z-50">
-        
-        {/* Home Activo */}
-        <Link href="/dashboard" className="text-red-accent">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          </svg>
-        </Link>
-
-        {/* Mensajes */}
-        <button onClick={goMensajes} className="text-gray-600 hover:text-white transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-        </button>
-
-        {/* Perfil */}
-        <Link href="/perfil" className="text-gray-600 hover:text-white transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-            <circle cx="12" cy="7" r="4"/>
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-          </svg>
-        </Link>
-      </nav>
-
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+
+      {reportOpen && reportUser && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[250] flex items-center justify-center px-4">
+          <div className="w-full max-w-md bg-gray-900 rounded-2xl p-6 border border-white/10 shadow-2xl">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-rose-400 font-bold">Denunciar</p>
+                <h3 className="text-lg font-black">{reportUser.nombre}</h3>
+              </div>
+              <button onClick={() => setReportOpen(false)} className="text-gray-400 hover:text-white">×</button>
+            </div>
+            <div className="space-y-2 mb-6">
+              <label className="text-sm text-gray-300 font-semibold">Motivo</label>
+              <select
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-gray-100 focus:outline-none focus:border-rose-400"
+              >
+                {dashReasons.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2 mb-6">
+              <label className="text-sm text-gray-500 font-semibold">No se admite mensaje en esta denuncia.</label>
+              <div className="w-full bg-black/30 border border-white/5 rounded-xl p-3 text-sm text-gray-500 italic">
+                Selecciona el motivo y envía.
+              </div>
+            </div>
+            <button
+              onClick={submitReport}
+              disabled={!reportReason}
+              className="w-full bg-rose-500 text-black font-black uppercase tracking-[0.2em] py-3 rounded-full active:scale-95 transition disabled:opacity-40"
+            >
+              Enviar reporte
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
